@@ -69,6 +69,7 @@ int SynchConsoleInput::GetString(char *buffer, int size) {
     return size;
 }
 
+
 //----------------------------------------------------------------------
 // SynchConsoleInput::CallBack
 //      Interrupt handler called when keystroke is hit; wake up
