@@ -48,6 +48,95 @@
 //	is in machine.h.
 //----------------------------------------------------------------------
 
+char* stringUser2System(int addr, int convert_length = -1) {
+    int length = 0;
+    bool stop = false;
+    char* str;
+
+    do {
+        int oneChar;
+        kernel->machine->ReadMem(addr + length, 1, &oneChar);
+        length++;
+        // if convert_length == -1, we use '\0' to terminate the process
+        // otherwise, we use convert_length to terminate the process
+        stop = ((oneChar == '\0' && convert_length == -1) ||
+                length == convert_length);
+    } while (!stop);
+
+    str = new char[length];
+    for (int i = 0; i < length; i++) {
+        int oneChar;
+        kernel->machine->ReadMem(addr + i, 1,
+                                 &oneChar);  // copy characters to kernel space
+        str[i] = (unsigned char)oneChar;
+    }
+    return str;
+}
+
+/**
+ * Modify program counter
+ * This code is adapted from `../machine/mipssim.cc`, line 667
+ **/
+void move_program_counter() {
+    /* set previous programm counter (debugging only)
+     * similar to: registers[PrevPCReg] = registers[PCReg];*/
+    kernel->machine->WriteRegister(PrevPCReg, kernel->machine->ReadRegister(PCReg));
+
+    /* set programm counter to next instruction
+     * similar to: registers[PCReg] = registers[NextPCReg]*/
+    kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(NextPCReg));
+
+    /* set next programm counter for brach execution
+     * similar to: registers[NextPCReg] = pcAfter;*/
+    kernel->machine->WriteRegister( NextPCReg, kernel->machine->ReadRegister(NextPCReg) + 4);
+}
+
+/**
+ * @brief Convert system string to user string
+ * 
+ * @param str string to convert
+ * @param addr addess of user string
+ * @param convert_length set max length of string to convert, leave
+ * blank to convert all characters of system string
+ * @return void
+ */
+void StringSys2User(char* str, int addr, int convert_length = -1) {
+    int length = (convert_length == -1 ? strlen(str) : convert_length);
+    for (int i = 0; i < length; i++) {
+        kernel->machine->WriteMem(addr + i, 1,
+                                  str[i]);  // copy characters to user space
+    }
+    kernel->machine->WriteMem(addr + length, 1, '\0');
+}
+
+void handle_not_implemented_SC(int type) {
+    DEBUG(dbgSys, "Not yet implemented syscall " << type << "\n");
+    return move_program_counter();
+}
+
+#define MAX_READ_STRING_LENGTH 255
+void handle_SC_ReadString() {
+    int memPtr = kernel->machine->ReadRegister(4);  // read address of C-string
+    int length = kernel->machine->ReadRegister(5);  // read length of C-string
+    if (length > MAX_READ_STRING_LENGTH) {  // avoid allocating large memory
+        DEBUG(dbgSys, "String length exceeds " << MAX_READ_STRING_LENGTH);
+        SysHalt();
+    }
+    char* buffer = SysReadString(length);
+    StringSys2User(buffer, memPtr);
+    delete[] buffer;
+    return move_program_counter();
+}
+
+void handle_SC_PrintString() {
+    int memPtr = kernel->machine->ReadRegister(4);  // read address of C-string
+    char* buffer = stringUser2System(memPtr);
+
+    SysPrintString(buffer, strlen(buffer));
+    delete[] buffer;
+    return move_program_counter();
+}
+
 void IncreaseProgramCounter()
 {
 	/* Modify return point */
@@ -72,6 +161,21 @@ ExceptionHandler(ExceptionType which)
 
     switch (which)
 	{
+		case NoException:  // return control to kernel
+            		kernel->interrupt->setStatus(SystemMode);
+            		DEBUG(dbgSys, "Switch to system mode\n");
+            		break;
+        	case PageFaultException:
+        	case ReadOnlyException:
+        	case BusErrorException:
+        	case AddressErrorException:
+        	case OverflowException:
+        	case IllegalInstrException:
+        	case NumExceptionTypes:
+            		cerr << "Error " << which << " occurs\n";
+            		SysHalt();
+            		ASSERTNOTREACHED();
+
 		case SyscallException:
 		{
 			switch(type) 
@@ -145,6 +249,10 @@ ExceptionHandler(ExceptionType which)
 
 					return IncreaseProgramCounter();
 				}
+				case SC_ReadString:
+                    			return handle_SC_ReadString();
+                		case SC_PrintString:
+                   			 return handle_SC_PrintString();
 	
 				default:
 					cerr << "Unexpected system call " << type << "\n";
