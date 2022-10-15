@@ -51,4 +51,5 @@ int main()
         PrintNum(a[i]);
         PrintChar(' ');
     }
+    Halt();
 }
