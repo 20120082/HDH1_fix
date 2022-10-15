@@ -13,6 +13,7 @@
 
 #include "kernel.h"
 #include "synchconsole.h"
+#include "ksyscallhelper.h"
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -190,4 +191,19 @@ void PrintChar(char x)
 {
     kernel->synchConsoleOut->PutChar(x);
 }
+char* SysReadString(int length) {
+    char* buffer = new char[length + 1];
+    for (int i = 0; i < length; i++) {
+        buffer[i] = ReadChar();
+    }
+    buffer[length] = '\0';
+    return buffer;
+}
+
+void SysPrintString(char* buffer, int length) {
+    for (int i = 0; i < length; i++) {
+        kernel->synchConsoleOut->PutChar(buffer[i]);
+    }
+}
+
 #endif /* ! __USERPROG_KSYSCALL_H__ */
