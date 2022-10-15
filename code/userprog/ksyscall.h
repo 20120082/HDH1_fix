@@ -13,7 +13,6 @@
 
 #include "kernel.h"
 #include "synchconsole.h"
-#include "ksyscallhelper.h"
 #include <stdint.h>
 #include <stdlib.h>
 
