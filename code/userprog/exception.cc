@@ -75,21 +75,23 @@ char* stringUser2System(int addr, int convert_length = -1) {
 
 /**
  * Modify program counter
- * This code is adapted from `../machine/mipssim.cc`, line 667
+ * Duoc tim thay `../machine/mipssim.cc`, comment: Advance program counters
  **/
-void move_program_counter() {
+void IncreaseProgramCounter() {
     /* set previous programm counter (debugging only)
-     * similar to: registers[PrevPCReg] = registers[PCReg];*/
+     * tuong ung: registers[PrevPCReg] = registers[PCReg];*/
     kernel->machine->WriteRegister(PrevPCReg, kernel->machine->ReadRegister(PCReg));
 
     /* set programm counter to next instruction
-     * similar to: registers[PCReg] = registers[NextPCReg]*/
+     * tuong ung: registers[PCReg] = registers[NextPCReg]*/
     kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(NextPCReg));
 
     /* set next programm counter for brach execution
-     * similar to: registers[NextPCReg] = pcAfter;*/
+     * tuong ung: registers[NextPCReg] = pcAfter;*/
     kernel->machine->WriteRegister( NextPCReg, kernel->machine->ReadRegister(NextPCReg) + 4);
 }
+
+
 
 /**
  * @brief Convert system string to user string
@@ -111,7 +113,7 @@ void StringSys2User(char* str, int addr, int convert_length = -1) {
 
 void handle_not_implemented_SC(int type) {
     DEBUG(dbgSys, "Not yet implemented syscall " << type << "\n");
-    return move_program_counter();
+    return IncreaseProgramCounter();
 }
 
 #define MAX_READ_STRING_LENGTH 255
@@ -125,7 +127,7 @@ void handle_SC_ReadString() {
     char* buffer = SysReadString(length);
     StringSys2User(buffer, memPtr);
     delete[] buffer;
-    return move_program_counter();
+    return IncreaseProgramCounter();
 }
 
 void handle_SC_PrintString() {
@@ -134,23 +136,9 @@ void handle_SC_PrintString() {
 
     SysPrintString(buffer, strlen(buffer));
     delete[] buffer;
-    return move_program_counter();
+    return IncreaseProgramCounter();
 }
 
-void IncreaseProgramCounter()
-{
-	/* Modify return point */
-	{
-		/* set previous programm counter (debugging only)*/
-		kernel->machine->WriteRegister(PrevPCReg, kernel->machine->ReadRegister(PCReg));
-
-		/* set programm counter to next instruction (all Instructions are 4 byte wide so we need to add 4)*/
-		kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(PCReg) + 4);
-
-		/* set next programm counter for brach execution */
-		kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg)+4);
-	}
-}
 
 void
 ExceptionHandler(ExceptionType which)
