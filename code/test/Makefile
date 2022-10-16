@@ -174,7 +174,13 @@ ReadNum_PrintNum.o: ReadNum_PrintNum.c
 ReadNum_PrintNum: ReadNum_PrintNum.o start.o
 	$(LD) $(LDFLAGS) start.o ReadNum_PrintNum.o -o ReadNum_PrintNum.coff
 	$(COFF2NOFF) ReadNum_PrintNum.coff ReadNum_PrintNum
-
+	
+RandomNum.o: RandomNum.c
+	$(CC) $(CFLAGS) -c RandomNum.c
+RandomNum: RandomNum.o start.o
+	$(LD) $(LDFLAGS) start.o RandomNum.o -o RandomNum.coff
+	$(COFF2NOFF) RandomNum.coff RandomNum
+	
 ascii.o: ascii.c
 	$(CC) $(CFLAGS) -c ascii.c
 ascii: ascii.o start.o
