@@ -127,10 +127,10 @@ int SysReadNum() {
         num = -num;
 
     
-    if (len <= MAX_NUM_LENGTH - 2) return num;//neu nho hon INT_MAX thi return lun ve num
+    if (len <= MAX_NUM_LENGTH - 2) return num;//neu co 9 chu so tro xuong thi chac chan la num da dung
 
     
-    if (compareNumAndString(num, _numberBuffer))//neu ta cho 3 000 000 000 thi num chi luu INT_MAX nen ko bao loi tran bo nho the nen ta can kiem tra xem num co that bang
+    if (compareNumAndString(num, _numberBuffer))//neu ta cho 3 000 000 000 thi num chi luu mot gia tri khac nen ko bao loi tran bo nho the nen ta can kiem tra xem num co that bang
         return num;
     else
         DEBUG(dbgSys,
@@ -144,6 +144,13 @@ void PrintNum(int number)
     bool negative=false;
     int size_num=0;
     int character=number;
+    if (character == INT32_MIN) 
+    {
+        char* a="-2147483648";
+        for(int i=0;i<11;i++)
+        kernel->synchConsoleOut->PutChar(a[i]);
+        return;
+    }
     if (number<0) 
     {
         negative=true;
