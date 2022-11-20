@@ -15,7 +15,7 @@ int main()
     char str[100];
     int id;
     int len;
-    //trong c cac bien phai khoi tao xong roi moi duoc thao tac (khi bat dau dung den ham thi khong duoc tao bien!!)
+
     PrintString("nhap so luong ki tu co trong file name 1(co tinh .txt): ");
     size=ReadNum();
     PrintString("nhap ten file 1: ");
