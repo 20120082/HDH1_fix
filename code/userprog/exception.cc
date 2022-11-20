@@ -48,7 +48,8 @@
 //	is in machine.h.
 //----------------------------------------------------------------------
 
-char* stringUser2System(int addr, int convert_length = -1) {
+char* stringUser2System(int addr, int convert_length = -1) 
+{
     int length = 0;
     bool stop = false;
     char* str;
@@ -197,7 +198,7 @@ ExceptionHandler(ExceptionType which)
 					int result_readNum;
 					result_readNum=	SysReadNum();
 					DEBUG(dbgSys, "input: " << result_readNum << "\n");
-					kernel->machine->WriteRegister(2, result_readNum);//thanh ghi 2 la noi luu tru gia tri cua gia tri tra ve cua ReadNum() o file ReadNum.c
+					kernel->machine->WriteRegister(2, result_readNum);
 
 					return IncreaseProgramCounter();
 				}
@@ -205,7 +206,7 @@ ExceptionHandler(ExceptionType which)
 				case SC_PrintNum:
 				{
 					int num;
-					num =(int)kernel->machine->ReadRegister(4);//doc tham so truyen vao(value cac tham so truyen vao cua tat ca cac function se duoc luu vao thanh ghi 4,5,6...)
+					num =(int)kernel->machine->ReadRegister(4);
 					PrintNum(num);
 
 					return IncreaseProgramCounter();
@@ -215,7 +216,7 @@ ExceptionHandler(ExceptionType which)
 				{
 					int randomNum = RandomNum();
 					DEBUG(dbgSys, "Random: " << randomNum << "\n");
-					kernel->machine->WriteRegister(2, randomNum);//thanh ghi 2 la noi luu tru gia tri cua gia tri tra ve cua RandomNum() o file ReadNum.c
+					kernel->machine->WriteRegister(2, randomNum);
 
 					return IncreaseProgramCounter();
 				}
@@ -239,8 +240,87 @@ ExceptionHandler(ExceptionType which)
 				}
 				case SC_ReadString:
                     			return handle_SC_ReadString();
-                		case SC_PrintString:
+                case SC_PrintString:
                    			 return handle_SC_PrintString();
+				case SC_Create:
+				{
+					int virtAddr = kernel->machine->ReadRegister(4);
+                    char* fileName = stringUser2System(virtAddr);
+
+                    if (SysCreate(fileName)==0)
+                       kernel->machine->WriteRegister(2, 0);
+                    else
+                       kernel->machine->WriteRegister(2, -1);
+
+                    delete[] fileName;
+					return IncreaseProgramCounter();
+				}
+				case SC_Open:
+				{
+					int virtAddr = kernel->machine->ReadRegister(4);
+					char* fileName = stringUser2System(virtAddr);
+					int type = kernel->machine->ReadRegister(5);
+					kernel->machine->WriteRegister(2, SysOpen(fileName, type));
+					delete fileName;
+					return IncreaseProgramCounter();
+				}
+				case SC_Close:
+				{
+					int id =kernel->machine->ReadRegister(4);
+					kernel->machine->WriteRegister(2, SysClose(id));
+					return IncreaseProgramCounter();
+				}
+				case SC_Read:
+				{
+					int virtAddr=kernel->machine->ReadRegister(4);
+					char* str = stringUser2System(virtAddr);
+					int size =kernel->machine->ReadRegister(5);
+					int id =kernel->machine->ReadRegister(6);
+					kernel->machine->WriteRegister(2, SysRead(str,size, id));
+					if (SysRead(str,size, id) !=-1 || SysRead(str,size, id) !=-2) 
+					{
+					StringSys2User(str, virtAddr, size);
+					}
+					delete[] str;
+					return IncreaseProgramCounter();
+				}
+				case SC_Write:
+				{
+					int virtAddr=kernel->machine->ReadRegister(4);
+					char* str = stringUser2System(virtAddr);
+					int size =kernel->machine->ReadRegister(5);
+					int id =kernel->machine->ReadRegister(6);
+					kernel->machine->WriteRegister(2, SysWrite(str,size, id));
+					delete[] str;
+					return IncreaseProgramCounter();
+				}
+				case SC_Seek:
+				{
+					int pos=kernel->machine->ReadRegister(4);
+					int id =kernel->machine->ReadRegister(5);
+					kernel->machine->WriteRegister(2, SysSeek(pos, id));
+					return IncreaseProgramCounter();
+				}
+				case SC_Remove:
+				{
+					int virtAddr=kernel->machine->ReadRegister(4);
+					char* filename = stringUser2System(virtAddr);
+					int result_remove=SysRemove(filename);
+					
+					if(result_remove==1)
+					{
+						DEBUG(dbgSys, "Remove file thanh cong " );
+						kernel->machine->WriteRegister(2, 1);
+					}
+					else
+					{
+						DEBUG(dbgSys, "Remove file that bai " );
+						kernel->machine->WriteRegister(2, 0);
+					}
+					 
+					return IncreaseProgramCounter();
+				}
+
 	
 				default:
 					cerr << "Unexpected system call " << type << "\n";
