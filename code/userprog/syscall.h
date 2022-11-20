@@ -40,7 +40,7 @@
 #define SC_RandomNum 18
 #define SC_ReadChar 19
 #define SC_PrintChar 20
-#define SC_Add		42
+#define SC_Add		42//khong duoc 29-40 vi trong machine.h co
 #define SC_ReadString   44
 #define SC_PrintString  45
 
@@ -120,8 +120,8 @@ typedef int OpenFileId;
  * the console device.
  */
 
-//#define ConsoleInput	0  ban dau ko phai la comment
-//#define ConsoleOutput	1  ban dau ko phai la comment
+#define _ConsoleInput	0  //doi ten tranh duplicate
+#define _ConsoleOutput	1  //tuong tu
  
 /* Create a Nachos file, with name "name" */
 /* Note: Create does not open the file.   */
@@ -134,7 +134,8 @@ int Remove(char *name);
 /* Open the Nachos file "name", and return an "OpenFileId" that can 
  * be used to read and write to the file.
  */
-OpenFileId Open(char *name);
+OpenFileId Open(char *name, int type);//them int type
+
 
 /* Write "size" bytes from "buffer" to the open file. 
  * Return the number of bytes actually read on success.
