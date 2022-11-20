@@ -140,6 +140,7 @@ FileSystem::FileSystem(bool format)
         freeMapFile = new OpenFile(FreeMapSector);
         directoryFile = new OpenFile(DirectorySector);
     }
+    
 }
 
 //----------------------------------------------------------------------
@@ -238,6 +239,8 @@ FileSystem::Open(char *name)
     delete directory;
     return openFile;				// return NULL if not found
 }
+
+
 
 //----------------------------------------------------------------------
 // FileSystem::Remove
