@@ -139,7 +139,7 @@ int SysReadNum() {
     return 0;
 }
 
-void PrintNum(int number)
+void PrintNum(int number)// cai PrintNum nay khac PrintNum o syscall.h (syscall.h chi don gian la thu vien cho .c thoi) con cai PrintNum nay la SystemPrintNum dung cho cai exception.cc
 {
     bool negative=false;
     int size_num=0;
@@ -212,4 +212,56 @@ void SysPrintString(char* buffer, int length) {
     }
 }
 
+int SysCreate(char* fileName) {
+    int success;
+    int length = strlen(fileName);
+
+    if (length == 0) {//Ten file khong duoc de trong
+        success = -1;
+
+    } else if (fileName == NULL) {// bo nho khong du de cap ten file
+        success = -1;
+    } else {
+        if (!kernel->fileSystem->Create(fileName)) {//luc bien dich thi duoc vi luc bien dich su dung filesys cua linux chu khong phai nachos bao loi do su dung filesys cua nachos
+        //va luc chay vi dung linux nen no van lay filesys_stub (linux!)
+            success = -1;
+        } else {
+            success = 0;
+        }
+    }
+
+    return success;
+}
+
+int SysOpen(char* fileName, int type) {
+    if (type != 0 && type != 1) return -1;
+
+    int id = kernel->fileSystem->Open(fileName, type);
+    if (id == -1) return -1;
+    return id;
+}
+
+int SysClose(int id) { return kernel->fileSystem->Close(id); }
+
+int SysRead(char *buffer, int size, int id)
+{
+    if(id==1) return kernel->synchConsoleOut->PutString(buffer,size);//console out
+    return kernel->fileSystem->Read(buffer, size, id);
+}
+
+int SysWrite(char *buffer, int size, int id)
+{
+    if(id==0) return kernel->synchConsoleIn->GetString(buffer,size);//console in
+    return kernel->fileSystem->Write(buffer, size, id);
+}
+
+int SysSeek(int pos,int id)
+{
+    return kernel->fileSystem->Seek(pos,id);
+}
+
+int SysRemove(char *filename)
+{
+    return kernel->fileSystem->Remove(filename);
+}
 #endif /* ! __USERPROG_KSYSCALL_H__ */
