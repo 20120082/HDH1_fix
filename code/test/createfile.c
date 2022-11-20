@@ -10,4 +10,5 @@ int main() {
         PrintString(" da tao thanh cong\n");
     } else
         PrintString("Tao file that bai!\n");
+    Halt();
 }
