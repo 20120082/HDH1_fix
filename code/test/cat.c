@@ -8,7 +8,7 @@
 
 int main()
 {
-    char str[100];//neu dung buffer* thi se in them error 7 occurs tu exception.cc
+    char str[100];
     int id = Open("hello.txt", 0);
     Read(str, 50, id);
     PrintString(str);
