@@ -1,10 +1,7 @@
 #include "syscall.h"
 
 #define MODE_READWRITE 0
-#define MODE_READ 1
 
-#define stdin 0
-#define stdout 1
 
 int main()
 {
@@ -29,14 +26,14 @@ int main()
 
 
     
-    id = Open(a, 0);
+    id = Open(a, MODE_READWRITE);
     Read(str, 50, id);
     len=0;
     while (str[len] != '\0') ++len;
     Close(id);
 
 
-    id = Open(b, 0);
+    id = Open(b, MODE_READWRITE);
     Write(str, len, id);
     Close(id);
     Halt();
